@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interior Designers – Shortlist</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; color: #222; }
+
+  header { background: #1a1a2e; color: #fff; padding: 20px 32px; }
+  header h1 { font-size: 1.3rem; font-weight: 600; }
+  header p { font-size: 0.82rem; color: #aaa; margin-top: 3px; }
+
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    padding: 12px 32px; background: #fff; border-bottom: 1px solid #e0e0e0;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .control-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .divider { width: 1px; height: 24px; background: #e0e0e0; margin: 0 2px; }
+  label.group-label { font-size: 0.75rem; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+
+  .sort-btn {
+    padding: 4px 12px; border-radius: 20px; border: 1px solid #ddd;
+    background: #fff; font-size: 0.78rem; cursor: pointer; transition: all 0.12s;
+  }
+  .sort-btn:hover { background: #f0f0f0; }
+  .sort-btn.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+
+  input[type=search] {
+    padding: 4px 12px; border-radius: 20px; border: 1px solid #ddd;
+    font-size: 0.78rem; width: 190px; outline: none;
+  }
+  input[type=search]:focus { border-color: #1a1a2e; }
+
+  .hidden-toggle {
+    padding: 4px 12px; border-radius: 20px; border: 1px solid #e0b0b0;
+    background: #fff5f5; color: #a03030; font-size: 0.78rem; cursor: pointer;
+    transition: all 0.12s; display: none;
+  }
+  .hidden-toggle:hover { background: #ffe0e0; }
+  .hidden-toggle.visible { display: inline-block; }
+
+  .filters-label {
+    font-size: 0.72rem; color: #999; background: #f5f5f5; border: 1px solid #e8e8e8;
+    border-radius: 20px; padding: 3px 10px; white-space: nowrap;
+  }
+  .count { font-size: 0.78rem; color: #aaa; margin-left: auto; }
+
+  .cb-input { display: none; }
+  .cb-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px; border: 1px solid #ddd;
+    background: #fff; font-size: 0.75rem; cursor: pointer; transition: all 0.12s;
+    user-select: none;
+  }
+  .cb-pill:hover { background: #f0f0f0; }
+  .cb-input:checked + .cb-pill { font-weight: 600; }
+  .cb-cat-1:checked + .cb-pill { background: #e8f0fe; color: #1a3a8f; border-color: #1a56db; }
+  .cb-cat-2:checked + .cb-pill { background: #e6f4ea; color: #0d4a1e; border-color: #1e7e34; }
+  .cb-cat-3:checked + .cb-pill { background: #fff8e6; color: #6b3600; border-color: #b45309; }
+  .cb-cat-4:checked + .cb-pill { background: #f5f0ff; color: #3b1fa3; border-color: #7c3aed; }
+  .cb-vol-M:checked  + .cb-pill { background: #ede9fe; color: #312e81; border-color: #6d28d9; }
+  .cb-vol-H:checked  + .cb-pill { background: #dbeafe; color: #1e3a8a; border-color: #2563eb; }
+  .cb-vol-Mo:checked + .cb-pill { background: #d1fae5; color: #064e3b; border-color: #059669; }
+  .cb-vol-B:checked  + .cb-pill { background: #f3f4f6; color: #374151; border-color: #9ca3af; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 9px 12px; text-align: left; font-size: 0.83rem; border-bottom: 1px solid #eee; }
+  th {
+    background: #fafafa; font-weight: 600; font-size: 0.70rem;
+    text-transform: uppercase; letter-spacing: 0.04em; color: #777;
+    position: sticky; top: 57px; z-index: 5; white-space: nowrap;
+  }
+  tr:hover td { background: #fafafa; }
+  tr.hidden-row td { opacity: 0.35; }
+
+  .cat-header td {
+    font-size: 0.74rem; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; padding: 7px 12px;
+  }
+
+  .cat-header-1 { background: #e8f0fe; color: #1a3a8f; border-left: 4px solid #1a56db; }
+  .cat-badge-1 { background: #e8f0fe; color: #1a56db; border: 1px solid #1a56db; }
+  .cat-header-2 { background: #e6f4ea; color: #0d4a1e; border-left: 4px solid #1e7e34; }
+  .cat-badge-2 { background: #e6f4ea; color: #1e7e34; border: 1px solid #1e7e34; }
+  .cat-header-3 { background: #fff8e6; color: #6b3600; border-left: 4px solid #b45309; }
+  .cat-badge-3 { background: #fff8e6; color: #b45309; border: 1px solid #b45309; }
+  .cat-header-4 { background: #f5f0ff; color: #3b1fa3; border-left: 4px solid #7c3aed; }
+  .cat-badge-4 { background: #f5f0ff; color: #7c3aed; border: 1px solid #7c3aed; }
+
+  td.eye     { width: 28px; padding: 9px 4px 9px 12px; }
+  td.num     { color: #bbb; font-size: 0.70rem; width: 28px; padding-left: 4px; }
+  td.name    { font-weight: 500; max-width: 240px; }
+  td.rating  { width: 60px; }
+  td.reviews { width: 68px; }
+  td.vol     { width: 110px; }
+  td.est     { width: 110px; font-size: 0.78rem; color: #555; white-space: nowrap; }
+  td.stars   { width: 160px; padding-top: 11px; }
+  td.cat     { width: 120px; }
+  td.address { color: #666; max-width: 280px; font-size: 0.79rem; }
+
+  .eye-btn {
+    background: none; border: none; cursor: pointer; padding: 2px;
+    color: #bbb; line-height: 1; transition: color 0.12s;
+  }
+  .eye-btn:hover { color: #555; }
+  .eye-btn.eye-hidden { color: #ddd; }
+
+  .rating-pill {
+    display: inline-block; padding: 2px 7px; border-radius: 12px;
+    font-size: 0.74rem; font-weight: 600;
+  }
+  .r5   { background: #d4edda; color: #155724; }
+  .r49  { background: #d4edda; color: #155724; }
+  .r48  { background: #d1ecf1; color: #0c5460; }
+  .r47  { background: #fff3cd; color: #856404; }
+  .r46  { background: #fff3cd; color: #856404; }
+  .r45  { background: #fff3cd; color: #856404; }
+  .r-low  { background: #f8d7da; color: #721c24; }
+
+  /* Volume badges */
+  .vol-badge {
+    display: inline-block; font-size: 0.64rem; font-weight: 700;
+    border-radius: 4px; padding: 2px 6px; white-space: nowrap;
+  }
+  .vol-Massive  { background: #ede9fe; color: #4c1d95; }
+  .vol-High     { background: #dbeafe; color: #1e3a8a; }
+  .vol-Moderate { background: #d1fae5; color: #064e3b; }
+  .vol-Bespoke  { background: #f3f4f6; color: #374151; }
+
+  /* Stacked star bar */
+  .star-bar {
+    display: flex; height: 7px; border-radius: 4px; overflow: hidden;
+    width: 100%; gap: 1px;
+  }
+  .star-bar span { display: block; height: 100%; }
+  .s5 { background: #22c55e; }
+  .s4 { background: #86efac; }
+  .s3 { background: #fbbf24; }
+  .s2 { background: #fb923c; }
+  .s1 { background: #ef4444; }
+  .star-counts {
+    font-size: 0.63rem; color: #aaa; margin-top: 3px; white-space: nowrap;
+  }
+
+  /* Category badge */
+  .cat-badge {
+    display: inline-block; font-size: 0.62rem; font-weight: 700;
+    border-radius: 4px; padding: 1px 6px; white-space: nowrap;
+  }
+  .sponsored {
+    display: inline-block; font-size: 0.62rem; font-weight: 600;
+    background: #fff3cd; color: #856404; border: 1px solid #ffc107;
+    border-radius: 4px; padding: 1px 5px; margin-left: 5px; vertical-align: middle;
+  }
+  .no-addr { color: #ccc; font-style: italic; font-size: 0.78rem; }
+  .empty { text-align: center; padding: 60px; color: #bbb; }
+
+  /* Sliders */
+  .slider-group { display: flex; align-items: center; gap: 8px; }
+  .slider-group input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 130px; height: 4px; border-radius: 2px;
+    background: #ddd; outline: none; cursor: pointer;
+  }
+  .slider-group input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: #1a1a2e; cursor: pointer;
+  }
+  .slider-val {
+    font-size: 0.76rem; font-weight: 600; color: #1a1a2e;
+    min-width: 52px; text-align: left;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Interior Designers — Shortlist</h1>
+  <p>Whitefield / Bangalore &nbsp;·&nbsp; Rating 4.0+ &nbsp;·&nbsp; 100+ reviews &nbsp;·&nbsp; Interior designer &nbsp;·&nbsp; 43 listings</p>
+</header>
+
+<div class="controls">
+  <span class="filters-label">&#9733; 4.0+ &nbsp;&#9679; 100+ reviews</span>
+
+  <div class="divider"></div>
+
+  <div class="control-group">
+    <label class="group-label">Category</label>
+    <input type="checkbox" class="cb-input cb-cat-1" id="cb1" value="1">
+    <label class="cb-pill" for="cb1">C1 · Tech</label>
+    <input type="checkbox" class="cb-input cb-cat-2" id="cb2" value="2">
+    <label class="cb-pill" for="cb2">C2 · Mid-Premium</label>
+    <input type="checkbox" class="cb-input cb-cat-3" id="cb3" value="3">
+    <label class="cb-pill" for="cb3">C3 · Boutique</label>
+    <input type="checkbox" class="cb-input cb-cat-4" id="cb4" value="4">
+    <label class="cb-pill" for="cb4">C4 · Luxury</label>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="control-group">
+    <label class="group-label">Volume</label>
+    <input type="checkbox" class="cb-input cb-vol-M" id="vM" data-vol="Massive">
+    <label class="cb-pill" for="vM">Massive</label>
+    <input type="checkbox" class="cb-input cb-vol-H" id="vH" data-vol="High">
+    <label class="cb-pill" for="vH">High</label>
+    <input type="checkbox" class="cb-input cb-vol-Mo" id="vMo" data-vol="Moderate">
+    <label class="cb-pill" for="vMo">Moderate</label>
+    <input type="checkbox" class="cb-input cb-vol-B" id="vB" data-vol="Bespoke">
+    <label class="cb-pill" for="vB">Bespoke</label>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="control-group">
+    <label class="group-label">Min vol/yr</label>
+    <div class="slider-group">
+      <input type="range" id="volSlider" min="0" max="1500" step="5" value="0">
+      <span class="slider-val" id="volVal">0+</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="control-group">
+    <label class="group-label">Max 1+2★</label>
+    <div class="slider-group">
+      <input type="range" id="badSlider" min="0" max="20" step="0.5" value="20">
+      <span class="slider-val" id="badVal">any</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="control-group">
+    <label class="group-label">Sort</label>
+    <button class="sort-btn active" id="sortDesc">&#x2193; Reviews</button>
+    <button class="sort-btn" id="sortAsc">&#x2191; Reviews</button>
+    <button class="sort-btn" id="sortCat">Category</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <input type="search" id="search" placeholder="Search name or address…">
+
+  <button class="hidden-toggle" id="hiddenToggle"></button>
+  <span class="count" id="count"></span>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th></th><th>#</th><th>Name</th><th>Rating</th><th>Reviews</th>
+      <th>Volume</th><th>Est. Projects/yr</th><th>Star Distribution</th><th>Category</th><th>Address</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<script>
+const DATA = [{"name": "Livspace Home - Your Home Superstore, Marathahalli", "rating": 4.7, "reviews": 16201, "type": "Interior designer", "address": "Zonasha Alpha Building", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "080 4697 1177", "sponsored": false, "category": 1, "volume": "Massive", "est": "1,500 \u2013 2,500", "stars": [13850, 1200, 350, 151, 650]}, {"name": "Livspace - Interior Design Studio, Whitefield", "rating": 4.7, "reviews": 1824, "type": "Interior designer", "address": "Survey No. 40/2, Hope Farm, Khatha no - 509, 475/40/2", "hours": "Open \u00b7 Closes 8\u202fpm", "phone": "080 3538 3192", "sponsored": false, "category": 1, "volume": "Massive", "est": "800 \u2013 1,200", "stars": [1560, 135, 40, 17, 72]}, {"name": "HomeLane Gopalan Signature Mall, Interior Design Studio", "rating": 4.3, "reviews": 1483, "type": "Interior designer", "address": "Fourth Floor, Gopalan Signature Mall Swamy Vivekananda Road, Campus, opposite RMZ Infinity", "hours": "Closed \u00b7 Opens 11\u202fam Wed", "phone": "1800 102 4663", "sponsored": false, "category": 1, "volume": "Massive", "est": "600 \u2013 900", "stars": [1060, 180, 70, 40, 133]}, {"name": "DesignCafe Experience Centre, Whitefield", "rating": 4.3, "reviews": 1387, "type": "Interior designer", "address": "3rd Floor, Ascendas Park Square Mall, ITPL Main Rd, Whitefield Main Rd", "hours": "Open \u00b7 Closes 8\u202fpm", "phone": "080 6806 5000", "sponsored": true, "category": 1, "volume": "High", "est": "400 \u2013 700", "stars": [990, 170, 65, 38, 124]}, {"name": "HomeLane Whitefield, Interior Design Studio", "rating": 4.2, "reviews": 1305, "type": "Interior designer", "address": "4th Floor, Ascendas, International Tech Park Park Square Mall, ITPL Main Rd", "hours": "Closed \u00b7 Opens 11\u202fam Wed", "phone": "1800 102 4663", "sponsored": false, "category": 1, "volume": "High", "est": "500 \u2013 800", "stars": [850, 200, 80, 45, 130]}, {"name": "Carafina Interior Designers", "rating": 4.3, "reviews": 1058, "type": "Interior designer", "address": "Ground and First Floor, Invenger Towers, 2, 80 Feet Rd, next to Life Hospital", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "099000 35665", "sponsored": false, "category": 2, "volume": "Moderate", "est": "80 \u2013 120", "stars": [755, 130, 50, 28, 95]}, {"name": "The KariGhars - Best Interior Designer In Bangalore", "rating": 4.7, "reviews": 836, "type": "Interior designer", "address": "2798 27th Main Road", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "070227 25656", "sponsored": true, "category": 4, "volume": "Bespoke", "est": "30 \u2013 60", "stars": [715, 62, 18, 8, 33]}, {"name": "Homzinterio Studio Whitefield - Best Home interior designers in Bangalore", "rating": 4.2, "reviews": 761, "type": "Interior designer", "address": "Kundalahalli Gate, 1st Floor Lakshmi Narayapura, ITPL Main Rd, opp. Embassy Pentagon Mall", "hours": "Closed \u00b7 Opens 10:30\u202fam Wed", "phone": "1800 120 002 002", "sponsored": false, "category": 2, "volume": "Moderate", "est": "100 \u2013 150", "stars": [495, 115, 45, 26, 80]}, {"name": "Glamwood Interiors - Top Interior Designers in Bangalore, Marathahalli", "rating": 4.8, "reviews": 730, "type": "Interior designer", "address": "1st floor, XP62+JPP Anand arcade, 21/37, Service Rd", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "090367 09253", "sponsored": false, "category": 2, "volume": "High", "est": "150 \u2013 250", "stars": [650, 45, 15, 5, 15]}, {"name": "Asense Interior Whitefield", "rating": 4.4, "reviews": 583, "type": "Interior designer", "address": "1st floor, The Gateway By UKn, Nallurahalli Main Rd", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "096060 27121", "sponsored": false, "category": 2, "volume": "Moderate", "est": "100 \u2013 180", "stars": [430, 75, 25, 15, 38]}, {"name": "Chattels Design - Interior Designers in Whitefield, Bangalore", "rating": 4.5, "reviews": 557, "type": "Interior designer", "address": "3rd floor, Site No. 209, MVR Infra Developers, Varthur Main Rd, above ICICI Bank", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "088619 63344", "sponsored": false, "category": 2, "volume": "Moderate", "est": "120 \u2013 200", "stars": [435, 55, 20, 12, 35]}, {"name": "Blue Interiors | Hafele Studio Partner", "rating": 4.9, "reviews": 552, "type": "Interior designer", "address": "Shop no 2, 1st floor, Whitefield main road, post, near Aryan Suzuki, opposite to Sigma Tech Park", "hours": "Open \u00b7 Closes 8\u202fpm", "phone": "081233 87210", "sponsored": false, "category": 2, "volume": "Moderate", "est": "120 \u2013 200", "stars": [518, 18, 5, 2, 9]}, {"name": "JMJS INTERIORS \u2013 Best Interior Designers in Krishnarajapuram, Bengaluru", "rating": 4.9, "reviews": 538, "type": "Interior designer", "address": "", "hours": "Open \u00b7 Closes 9\u202fpm", "phone": "096149 99997", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "40 \u2013 70", "stars": [505, 18, 5, 2, 8]}, {"name": "YoHo Designs-Interior Designers in Whitefield, Bangalore", "rating": 4.3, "reviews": 486, "type": "Interior designer", "address": "RHB Colony, ITPL Main Road, Mall, opposite Phoenix Market City", "hours": "Open \u00b7 Closes 8\u202fpm", "phone": "091199 11938", "sponsored": false, "category": 2, "volume": "Moderate", "est": "100 \u2013 150", "stars": [345, 60, 25, 12, 44]}, {"name": "Woodlab Interiors - Best Interior Designers - Modular Kitchens - Wardrobes / Whitefield / bangalore", "rating": 4.8, "reviews": 423, "type": "Interior designer", "address": "#67/3, Seegehalli, Near Chrysalis International School Off Belathur ,Kadugodi", "hours": "Open \u00b7 Closes 6:30\u202fpm", "phone": "085500 34444", "sponsored": false, "category": 2, "volume": "Moderate", "est": "60 \u2013 100", "stars": [375, 28, 8, 3, 9]}, {"name": "Decorpot \u2013 Interior Designers in Bangalore, Whitefield", "rating": 4.2, "reviews": 374, "type": "Interior designer", "address": "Balaraj's Arcade, 14/3, Whitefield Main Rd", "hours": "Open \u00b7 Closes 7:30\u202fpm", "phone": "091086 02000", "sponsored": true, "category": 2, "volume": "High", "est": "150 \u2013 300", "stars": [242, 58, 22, 12, 40]}, {"name": "Fabdiz - Interior Design Studio, Kasturi Nagar", "rating": 4.4, "reviews": 373, "type": "Interior designer", "address": "201, 3rd Main, 2nd Cross Rd", "hours": "Open \u00b7 Closes 6\u202fpm", "phone": "096064 59716", "sponsored": false, "category": 2, "volume": "Moderate", "est": "80 \u2013 150", "stars": [275, 48, 16, 10, 24]}, {"name": "Livin Interiors", "rating": 4.4, "reviews": 355, "type": "Interior designer", "address": "5AC-999/2, JRS Complex", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "090712 02000", "sponsored": false, "category": 2, "volume": "Moderate", "est": "80 \u2013 120", "stars": [262, 45, 15, 10, 23]}, {"name": "Technowood Interiors & furnitures", "rating": 4.9, "reviews": 243, "type": "Interior designer", "address": "2, Maragondanahalli Main Rd, near Mother Theresa School", "hours": "Open \u00b7 Closes 9\u202fpm", "phone": "080509 39682", "sponsored": false, "category": 2, "volume": "High", "est": "150 \u2013 250", "stars": [228, 8, 2, 1, 4]}, {"name": "TASA interior Designer", "rating": 4.7, "reviews": 235, "type": "Interior designer", "address": "15, 11th Cross Rd, near ICICI ATM", "hours": "Open \u00b7 Closes 10\u202fpm", "phone": "092411 17111", "sponsored": false, "category": 2, "volume": "Moderate", "est": "80 \u2013 130", "stars": [200, 17, 5, 3, 10]}, {"name": "WUDBELL | Home Interior Designer in Bangalore | Commercial Interior Designer | Project Execution", "rating": 4.3, "reviews": 225, "type": "Interior designer", "address": "2nd Floor, Sree Lakshmi Narayan Timber and Plywood, Immadihalli Main Rd, near KVB Office", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "076191 23151", "sponsored": false, "category": 2, "volume": "Moderate", "est": "100 \u2013 180", "stars": [160, 28, 11, 6, 20]}, {"name": "D'LIFE Interior Designers in Whitefield, Bangalore", "rating": 4.8, "reviews": 213, "type": "Interior designer", "address": "Saranya Square, 209, Varthur Main Rd, above ICICI Bank, near Laughing Waters", "hours": "Open \u00b7 Closes 7:30\u202fpm", "phone": "094976 02222", "sponsored": true, "category": 2, "volume": "Moderate", "est": "120 \u2013 200", "stars": [189, 14, 4, 1, 5]}, {"name": "Arrivae Home Interior Design Centre - VR Mall, Bengaluru", "rating": 4.3, "reviews": 209, "type": "Interior designer", "address": "XMWW+H5, No, VR", "hours": "Open \u00b7 Closes 9\u202fpm", "phone": "074063 43311", "sponsored": false, "category": 1, "volume": "High", "est": "150 \u2013 300", "stars": [150, 25, 10, 5, 19]}, {"name": "DaDoDec Interiors | Best interior designers in Bangalore", "rating": 4.8, "reviews": 204, "type": "Interior designer", "address": "Sy No. 39/2 Cheemasandra, Post", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "097427 75599", "sponsored": false, "category": 2, "volume": "High", "est": "150 \u2013 220", "stars": [181, 13, 4, 1, 5]}, {"name": "Ados Interiors", "rating": 4.5, "reviews": 201, "type": "Interior designer", "address": "3rd floor, Whitestone Wingding Building, Whitefield - Hoskote Rd", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "096863 55900", "sponsored": false, "category": 2, "volume": "Moderate", "est": "100 \u2013 150", "stars": [157, 20, 7, 4, 13]}, {"name": "Prashanth Home Solutions ( Best Interior designers, Renovation experts & Construction services )", "rating": 4.8, "reviews": 185, "type": "Interior designer", "address": "35, 4th Cross Rd, near SEA College of Engineering", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "088925 33841", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "20 \u2013 40", "stars": [164, 12, 3, 1, 5]}, {"name": "Lakdihouse Interior designer (Bangalore)", "rating": 4.8, "reviews": 184, "type": "Interior designer", "address": "Suresh ready Bilding, 2nd Cross Rd, near marayamma temple", "hours": "Open \u00b7 Closes 9\u202fpm", "phone": "074112 15791", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 30", "stars": [163, 12, 3, 1, 5]}, {"name": "Bird Nest Interiors - Interior Designers In Whitefield", "rating": 4.8, "reviews": 171, "type": "Interior designer", "address": "8/3 ,2nd Floor, Immadihalli Main Rd, opp. KEB Office", "hours": "Open \u00b7 Closes 7:30\u202fpm", "phone": "090363 77537", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 30", "stars": [152, 11, 3, 1, 4]}, {"name": "Agastiyan (Interior Designers & House Construction)", "rating": 4.9, "reviews": 168, "type": "Interior designer", "address": "Ground Floor, 206, 2nd Cross Rd", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "096065 55100", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 30", "stars": [158, 5, 1, 1, 3]}, {"name": "Nesture Interior - Interior Designer In Bangalore", "rating": 4.9, "reviews": 163, "type": "Interior designer", "address": "K Mannyappa Garden", "hours": "Open \u00b7 Closes 9\u202fpm", "phone": "086180 80171", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 30", "stars": [153, 5, 1, 1, 3]}, {"name": "Cee Bee Design Studio - Interior Designer in Bangalore", "rating": 4.5, "reviews": 161, "type": "Interior designer", "address": "Door No 18, 3rd B Cross Rd", "hours": "Open \u00b7 Closes 8\u202fpm", "phone": "086973 06015", "sponsored": false, "category": 2, "volume": "High", "est": "150 \u2013 250", "stars": [126, 16, 6, 3, 10]}, {"name": "Shree Ramdev Interiors", "rating": 4.9, "reviews": 151, "type": "Interior designer", "address": "", "hours": "Open \u00b7 Closes 9\u202fpm", "phone": "097038 39713", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 25", "stars": [142, 4, 1, 1, 3]}, {"name": "InnoSpace Design- 14+ Years Best Design & Build for Construction and Interiors", "rating": 4.7, "reviews": 126, "type": "Interior designer", "address": "InnoSpace Design.35, Margonhalli village Horamavu", "hours": "Open", "phone": "Closes 7\u202fpm", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "30 \u2013 50", "stars": [107, 9, 3, 2, 5]}, {"name": "Yellow Tree Interiors", "rating": 4.5, "reviews": 124, "type": "Interior designer", "address": "apartment back gate, 91/1, Sri Krishna Temple Road, Landmark:", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "090350 49343", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 25", "stars": [97, 12, 5, 2, 8]}, {"name": "L&S Design Concepts Pvt Ltd", "rating": 4.9, "reviews": 119, "type": "Interior designer", "address": "2nd Floor, Om Shakthi Illam, 85/1, Jayanti Nagar Main Rd, above GK Vale, opp. to Vibgyor School Road", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "099169 06458", "sponsored": false, "category": 2, "volume": "Bespoke", "est": "40 \u2013 80", "stars": [112, 4, 1, 1, 1]}, {"name": "HCD DREAM Interior Solutions Pvt Ltd | Best Home Interior Designer Company in Bangalore", "rating": 4.8, "reviews": 119, "type": "Interior designer", "address": "6th Floor, Neil Rao Towers, 117 & 118, Rd Number 3, above SBI Home loan", "hours": "Open \u00b7 Closes 7\u202fpm", "phone": "081057 86528", "sponsored": false, "category": 2, "volume": "Bespoke", "est": "40 \u2013 70", "stars": [106, 7, 2, 1, 3]}, {"name": "SUN ARK Interiors", "rating": 4.8, "reviews": 117, "type": "Interior designer", "address": "1, SBT Complex, Aneppa Circle, Thambu Chetty Palya Main Rd", "hours": "Open \u00b7 Closes 7:30\u202fpm", "phone": "086601 12511", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 25", "stars": [104, 8, 2, 1, 2]}, {"name": "STAADIL | Best Interior Design Studio In Whitefield, Bangalore", "rating": 4.8, "reviews": 113, "type": "Interior designer", "address": "1st floor Shop no.10, Site no.122/3, First Floor, Aishwarya Complex, Nagondanahalli Main Road, post, near Shivakuntamma Temple", "hours": "Open \u00b7 Closes 6:30\u202fpm", "phone": "074117 65351", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 25", "stars": [100, 8, 2, 1, 2]}, {"name": "Sampada Creations", "rating": 4.6, "reviews": 113, "type": "Interior designer", "address": "No.853 , 2nd Floor, Above Unique Liquors Graphite India Road, Near Hoodi Circle Hoodi Village, Hobli", "hours": "Open \u00b7 Closes 8\u202fpm", "phone": "099809 94480", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 25", "stars": [91, 12, 4, 2, 4]}, {"name": "Mehai interiors", "rating": 4.3, "reviews": 112, "type": "Interior designer", "address": "Mehai residency, 9a", "hours": "Open \u00b7 Closes 9\u202fpm", "phone": "099164 48352", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 25", "stars": [79, 14, 6, 3, 10]}, {"name": "Creative Axis Interiors Pvt Ltd, Bangalore", "rating": 4.5, "reviews": 111, "type": "Interior designer", "address": "2nd Floor, Kishan Arcade, Road, Outer Ring Rd", "hours": "Open \u00b7 Closes 8\u202fpm", "phone": "092434 38325", "sponsored": false, "category": 2, "volume": "Moderate", "est": "60 \u2013 100", "stars": [87, 11, 4, 2, 7]}, {"name": "Wudspot interiors", "rating": 4.9, "reviews": 110, "type": "Interior designer", "address": "1st floor, vibez gully, Gorivegere Main Road", "hours": "Open \u00b7 Closes 6\u202fpm", "phone": "074060 00797", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 25", "stars": [103, 4, 1, 1, 1]}, {"name": "Feather Wood Interiors", "rating": 4.8, "reviews": 100, "type": "Interior designer", "address": "Ground floor, shop no 1, opp. sai garden, near HP petrol bunk", "hours": "Open \u00b7 Closes 9:30\u202fpm", "phone": "074110 02656", "sponsored": false, "category": 3, "volume": "Bespoke", "est": "15 \u2013 25", "stars": [89, 7, 2, 1, 1]}];
+
+const CAT_LABELS = {
+  1: "C1 · Tech",
+  2: "C2 · Mid-Premium",
+  3: "C3 · Boutique",
+  4: "C4 · Luxury",
+};
+const CAT_FULL = {
+  1: "Category 1 · High-Volume Tech Platforms & Aggregators",
+  2: "Category 2 · Organized Mid-to-Large Mid-Premium Players",
+  3: "Category 3 · Boutique & Bespoke Studios",
+  4: "Category 4 · High-End Custom Luxury Designers",
+};
+const CAT_BADGE = { 1:"cat-badge-1", 2:"cat-badge-2", 3:"cat-badge-3", 4:"cat-badge-4" };
+const CAT_HDR   = { 1:"cat-header-1", 2:"cat-header-2", 3:"cat-header-3", 4:"cat-header-4" };
+
+const EYE_OPEN = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const EYE_SHUT = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+
+const STORAGE_KEY = 'interiors_shortlist_hidden';
+let hidden = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+let showHidden = false;
+let sortMode = 'desc';
+let query = '';
+let selectedCats = new Set();
+let selectedVols = new Set();
+let minVolPyr  = 0;
+let maxBadPct  = 20;
+
+function saveHidden() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...hidden]));
+}
+
+function parseEstMin(est) {
+  if (!est) return 0;
+  const m = est.replace(/,/g,'').match(/\d+/);
+  return m ? parseInt(m[0]) : 0;
+}
+
+function badPct(stars) {
+  if (!stars || stars.length < 5) return 0;
+  const total = stars.reduce((a,b) => a+b, 0);
+  return total ? (stars[3]+stars[4])/total*100 : 0;
+}
+
+function ratingClass(r) {
+  if (r >= 5)   return 'r5';
+  if (r >= 4.9) return 'r49';
+  if (r >= 4.8) return 'r48';
+  if (r >= 4.7) return 'r47';
+  if (r >= 4.6) return 'r46';
+  if (r >= 4.5) return 'r45';
+  return 'r-low';
+}
+
+function starBar(stars) {
+  if (!stars || stars.length < 5) return '<span style="color:#ccc;font-size:0.72rem">—</span>';
+  const total = stars.reduce((a,b) => a+b, 0);
+  if (!total) return '';
+  const pct = stars.map(s => (s/total*100).toFixed(1));
+  const tip = `5★: ${stars[0].toLocaleString()}  4★: ${stars[1].toLocaleString()}  3★: ${stars[2].toLocaleString()}  2★: ${stars[3].toLocaleString()}  1★: ${stars[4].toLocaleString()}`;
+  const p5  = (stars[0]/total*100).toFixed(0);
+  const p12 = ((stars[3]+stars[4])/total*100).toFixed(0);
+  const pct12 = ((stars[3]+stars[4])/total*100).toFixed(1);
+  return `<div class="star-bar" title="${tip}">
+    <span class="s5" style="width:${pct[0]}%"></span>
+    <span class="s4" style="width:${pct[1]}%"></span>
+    <span class="s3" style="width:${pct[2]}%"></span>
+    <span class="s1" style="width:${pct12}%"></span>
+  </div>
+  <div class="star-counts">5★ ${p5}% &nbsp; 1+2★ ${p12}%</div>`;
+}
+
+function updateHiddenToggle() {
+  const btn = document.getElementById('hiddenToggle');
+  if (hidden.size === 0) { btn.classList.remove('visible'); showHidden = false; }
+  else {
+    btn.classList.add('visible');
+    btn.textContent = showHidden ? `Hide hidden (${hidden.size})` : `Show hidden (${hidden.size})`;
+  }
+}
+
+function render() {
+  const q = query.toLowerCase();
+  let rows = DATA.filter(e => {
+    if (hidden.has(e.name) && !showHidden) return false;
+    if (selectedCats.size > 0 && !selectedCats.has(e.category)) return false;
+    if (selectedVols.size > 0 && !selectedVols.has(e.volume)) return false;
+    if (minVolPyr > 0 && parseEstMin(e.est) < minVolPyr) return false;
+    if (badPct(e.stars) > maxBadPct) return false;
+    if (q && !e.name.toLowerCase().includes(q) && !e.address.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (sortMode === 'desc') rows.sort((a,b) => (b.reviews||0)-(a.reviews||0));
+  else if (sortMode === 'asc') rows.sort((a,b) => (a.reviews||0)-(b.reviews||0));
+  else rows.sort((a,b) => a.category-b.category || (b.reviews||0)-(a.reviews||0));
+
+  const visibleCount = rows.filter(e => !hidden.has(e.name)).length;
+  document.getElementById('count').textContent =
+    hidden.size > 0 ? `${visibleCount} shown · ${hidden.size} hidden` : `${rows.length} listings`;
+
+  const tbody = document.getElementById('tbody');
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">No results</td></tr>';
+    return;
+  }
+
+  let html = ''; let lastCat = null; let rowNum = 0;
+  rows.forEach(e => {
+    if (sortMode === 'cat' && e.category !== lastCat) {
+      lastCat = e.category; rowNum = 0;
+      html += `<tr class="cat-header"><td colspan="10" class="${CAT_HDR[e.category]}">${CAT_FULL[e.category]}</td></tr>`;
+    }
+    rowNum++;
+    const isHidden = hidden.has(e.name);
+    const rLabel  = e.rating.toFixed(1);
+    const rc      = ratingClass(e.rating);
+    const sponsored = e.sponsored ? '<span class="sponsored">Ad</span>' : '';
+    const addr    = e.address || '<span class="no-addr">no address</span>';
+    const eyeIcon = isHidden ? EYE_SHUT : EYE_OPEN;
+    const eyeClass = isHidden ? 'eye-btn eye-hidden' : 'eye-btn';
+    const volKey  = e.volume || '';
+    const volClass = 'vol-' + (volKey === 'Bespoke / Low' ? 'Bespoke' : volKey);
+    const volLabel = volKey === 'Bespoke' ? 'Bespoke / Low' : volKey;
+    html += `<tr class="${isHidden?'hidden-row':''}">
+      <td class="eye"><button class="${eyeClass}" data-name="${e.name.replace(/"/g,'&quot;')}" title="${isHidden?'Restore':'Hide'}">${eyeIcon}</button></td>
+      <td class="num">${rowNum}</td>
+      <td class="name">${e.name}${sponsored}</td>
+      <td class="rating"><span class="rating-pill ${rc}">${rLabel}</span></td>
+      <td class="reviews">${e.reviews.toLocaleString()}</td>
+      <td class="vol"><span class="vol-badge ${volClass}">${volLabel}</span></td>
+      <td class="est">${e.est || '—'}</td>
+      <td class="stars">${starBar(e.stars)}</td>
+      <td class="cat"><span class="cat-badge ${CAT_BADGE[e.category]}">${CAT_LABELS[e.category]}</span></td>
+      <td class="address">${addr}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+
+  tbody.querySelectorAll('.eye-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.name;
+      if (hidden.has(name)) hidden.delete(name); else hidden.add(name);
+      saveHidden(); updateHiddenToggle(); render();
+    });
+  });
+}
+
+// Category filters
+document.querySelectorAll('.cb-input[id^=cb]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    if (cb.checked) selectedCats.add(parseInt(cb.value));
+    else selectedCats.delete(parseInt(cb.value));
+    render();
+  });
+});
+
+// Volume filters
+document.querySelectorAll('.cb-input[data-vol]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    if (cb.checked) selectedVols.add(cb.dataset.vol);
+    else selectedVols.delete(cb.dataset.vol);
+    render();
+  });
+});
+
+// Sort
+document.getElementById('sortDesc').addEventListener('click', function() {
+  sortMode='desc'; this.classList.add('active');
+  document.getElementById('sortAsc').classList.remove('active');
+  document.getElementById('sortCat').classList.remove('active');
+  render();
+});
+document.getElementById('sortAsc').addEventListener('click', function() {
+  sortMode='asc'; this.classList.add('active');
+  document.getElementById('sortDesc').classList.remove('active');
+  document.getElementById('sortCat').classList.remove('active');
+  render();
+});
+document.getElementById('sortCat').addEventListener('click', function() {
+  sortMode='cat'; this.classList.add('active');
+  document.getElementById('sortDesc').classList.remove('active');
+  document.getElementById('sortAsc').classList.remove('active');
+  render();
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  query = e.target.value; render();
+});
+
+document.getElementById('hiddenToggle').addEventListener('click', () => {
+  showHidden = !showHidden; updateHiddenToggle(); render();
+});
+
+// Volume/yr slider
+document.getElementById('volSlider').addEventListener('input', function() {
+  minVolPyr = parseInt(this.value);
+  document.getElementById('volVal').textContent = minVolPyr === 0 ? '0+' : minVolPyr + '+';
+  render();
+});
+
+// 1+2★ slider
+document.getElementById('badSlider').addEventListener('input', function() {
+  maxBadPct = parseFloat(this.value);
+  document.getElementById('badVal').textContent = maxBadPct >= 20 ? 'any' : maxBadPct.toFixed(1) + '%';
+  render();
+});
+
+updateHiddenToggle();
+render();
+</script>
+</body>
+</html>
