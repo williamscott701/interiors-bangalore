@@ -1,5 +1,7 @@
 # Interiors Bangalore
 
+**Live site: https://williamscott701.github.io/interiors-bangalore/**
+
 A personal data project that scrapes, cleans, and ranks interior designers in Bangalore (originally focused on Whitefield, later expanded citywide) from Google Maps listings, then presents them as a static, filterable, self-contained HTML directory — `index.html` — for comparing studios before choosing one for a home renovation.
 
 There is no build system, server, or framework here. It's a small pipeline of Python scripts that turn raw pasted Google Maps text into structured JSON, which is then hand-embedded into a single-page HTML app with vanilla JS/CSS.
